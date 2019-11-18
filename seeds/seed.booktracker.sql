@@ -48,4 +48,9 @@ VALUES
   ('confusing', 4, 2, 2),
   ('bad', 1, 3, 3);
 
+INSERT INTO progress (book_id, user_id, percent, reading_status)
+VALUES
+  (2, 1, 50, 'in progress'),
+
+  (3, 1, 75, 'in progress');
 COMMIT;
