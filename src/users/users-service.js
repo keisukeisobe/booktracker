@@ -6,7 +6,7 @@ const UsersService = {
   },
   getUserProfile(db, user_id) {
     return db.from('progress')
-      .select('books.title', 'authors.name', 'progress.reading_status', 'progress.percent', 'ratings.rating', 'progress.id')
+      .select('books.title', 'authors.name', 'progress.reading_status', 'progress.percent', 'ratings.rating', 'progress.id', 'books.id AS book_id')
       .join('books', 'progress.book_id', '=', 'books.id')
       .join('authors', 'authors.id', '=', 'books.author_id')
       .join('ratings', 'ratings.book_id', '=', 'books.id')
@@ -14,7 +14,7 @@ const UsersService = {
   },
   getUserProfileBook(db, user_id, book_id) {
     return db.from('progress')
-      .select('books.title', 'authors.name', 'progress.reading_status', 'progress.percent', 'ratings.rating', 'progress.id')
+      .select('books.title', 'books.description', 'authors.name', 'progress.reading_status', 'progress.percent', 'ratings.rating', 'progress.id', 'books.id AS book_id')
       .join('books', 'progress.book_id', '=', 'books.id')
       .join('authors', 'authors.id', '=', 'books.author_id')
       .join('ratings', 'ratings.book_id', '=', 'books.id')

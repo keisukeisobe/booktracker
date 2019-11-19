@@ -13,7 +13,19 @@ const serializeUserProfile = progress => ({
   status: progress.reading_status,
   percent: progress.percent,
   rating: progress.rating,
-  progress_id: progress.id
+  progress_id: progress.id,
+  book_id: progress.book_id
+});
+
+const serializeUserProfileBook = progress => ({
+  title: progress.title,
+  author_name: progress.name,
+  description: progress.description,
+  status: progress.reading_status,
+  percent: progress.percent,
+  rating: progress.rating,
+  progress_id: progress.id,
+  book_id: progress.book_id
 });
 
 usersRouter.route('/users/')
@@ -42,7 +54,7 @@ usersRouter.route('/users/:user_id')
       });
   });
 
-usersRouter.route('/users/:user_id/book/:book_id')
+usersRouter.route('/users/:user_id/books/:book_id')
   .get((req, res, next) => {
     const knexInstance = req.app.get('db');
     UsersService.getUserProfileBook(knexInstance, req.params.user_id, req.params.book_id)
@@ -50,9 +62,8 @@ usersRouter.route('/users/:user_id/book/:book_id')
         if(!book) {
           return res.status(404).json({error: 'User has not logged this book'});
         }
-        res.json(book);
+        res.json(book.map(serializeUserProfileBook));
       });
   });
-
 
 module.exports = usersRouter;

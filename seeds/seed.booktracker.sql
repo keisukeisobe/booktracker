@@ -50,7 +50,7 @@ VALUES
 
 INSERT INTO progress (book_id, user_id, percent, reading_status)
 VALUES
+  (1, 1, 100, 'completed'),
   (2, 1, 50, 'in progress'),
-
   (3, 1, 75, 'in progress');
 COMMIT;
