@@ -25,6 +25,7 @@ app.use('/api', usersRouter);
 app.use('/api', booksRouter);
 app.use('/api', authRouter);
 
+// eslint-disable-next-line no-unused-vars
 app.use(function errorHandler(error, req, res, next) {
   let response;
   if (process.env.NODE_ENV === 'production') {

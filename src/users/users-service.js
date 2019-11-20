@@ -1,3 +1,4 @@
+const BooksService =require( '../books/books-service');
 
 const UsersService = {
   getAllUsers(db) {
@@ -20,6 +21,22 @@ const UsersService = {
       .join('ratings', 'ratings.book_id', '=', 'books.id')
       .where('progress.user_id', user_id)
       .andWhere('progress.book_id', book_id);
+  },
+  insertBook(db, newBook) {
+    return db
+      .insert(newBook)
+      .into('books')
+      .returning('*')
+      .then(([book])=> book)
+      .then(book=> BooksService.getBookById(db, book.id));
+  },
+  insertProgress(db, newProgress) {
+    return db
+      .insert(newProgress)
+      .into('progress')
+      .returning('*')
+      .then(([progress]) => progress)
+      .then(progress => BooksService.getProgressById(db, progress.id));
   }
 };
 

@@ -19,6 +19,16 @@ const BooksService = {
       .select('*')
       .where('book.id', id)
       .first();
+  },
+  insertBook(db, newBook) {
+    return db.insert(newBook).into('books').returning('*').then(([book]) => book)
+      .then(book => BooksService.getBookById(db, book.id));
+  },
+  getProgressById(db, id) {
+    return db.from('progress')
+      .select('*')
+      .where('progress.id', id)
+      .first();
   }
 };
 
