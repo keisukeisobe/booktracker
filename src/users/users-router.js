@@ -34,8 +34,7 @@ const serializeUserProfileBook = progress => ({
 });
 
 usersRouter.route('/users/')
-  .all(requireAuth)
-  .get((req, res, next) => {
+  .get(requireAuth, (req, res, next) => {
     const knexInstance = req.app.get('db');
     UsersService.getAllUsers(knexInstance)
       .then(users => {
@@ -46,6 +45,44 @@ usersRouter.route('/users/')
       })
       .catch(next);
   });
+
+usersRouter.post('/users/', jsonParser, (req, res, next) =>{
+  const {username, password, email} = req.body;
+  for (const field of ['username', 'password', 'email']){
+    if(!req.body[field]){
+      return res.status(400).json({error: `Missing ${field} in request body`});
+    }
+  }
+  const passwordError = UsersService.validatePassword(password);
+  if(passwordError) {
+    return res.status(400).json({error: passwordError});
+  }
+
+  UsersService.hasUserWithUserName(
+    req.app.get('db'),
+    username
+  )
+    .then(hasUserWithUserName => {
+      if(hasUserWithUserName){
+        return res.status(400).json({error: 'Username already taken'});
+      }
+      return UsersService.hashPassword(password)
+        .then(hashedPassword => {
+          const newUser = {
+            username,
+            password: hashedPassword,
+            email,
+            date_created: 'now()'
+          };
+          return UsersService.insertUser(req.app.get('db'), newUser)
+            .then(user => {
+              res.status(201).location(path.posix.join(req.originalUrl, `/${user.id}`))
+                .json(UsersService.serializeUser(user));
+            });
+        });
+    });
+
+});
 
 usersRouter.route('/users/:user_id')
   .all(requireAuth)
@@ -60,45 +97,46 @@ usersRouter.route('/users/:user_id')
         res.json(profile.map(serializeUserProfile));
       });
   })
-  .post(requireAuth, jsonParser, (req, res, next) => {
-    const { title, author, genre } = req.body;
-    const newBook =  { title, author, genre };
-    const requiredFields = ['title', 'author', 'genre'];
+  .post(jsonParser, (req, res, next) => {
+    const { title, author, description } = req.body;
+    const newBook =  { title, author, description };
+    const requiredFields = ['title', 'author', 'description'];
     for (const key of requiredFields) {
       if(!(key in req.body)){
         return res.status(400).json({error: `Missing ${key} in request body`});
       }
     }
-    newBook.user_id = req.user.id;
-
     let newBookId = '';
-
     UsersService.insertBook(
       req.app.get('db'),
       newBook
     )
       .then(book => {
         newBookId = book.id;
-        res.status(201).location(path.posix.join(req.originalUrl, `/books/${book.id}`))
-          .json(BooksService.serializeBook(book));
+        const newProgress = {
+          book_id: newBookId,
+          user_id: req.user.id,
+          percent: 0,
+          reading_status: 'in progress'
+        };
+        UsersService.insertProgress(
+          req.app.get('db'),
+          newProgress
+        )
+          .then(progress => {
+            progress.progress_id = progress.id;
+            const newRating = {content: '', book_id: newBookId, user_id: req.user.id, rating: 0};
+            UsersService.insertRating(req.app.get('db'), newRating)
+              .then(rating => {
+                rating.rating_id = rating.id;
+                let mergedObj = {...BooksService.serializeBook(book), ...progress, ...rating};
+                res.status(201).location(path.posix.join(req.originalUrl, `/books/${book.id}`))
+                  .json(mergedObj);  
+              });
+          });
       })
       .catch(next);
-
-    const newProgress = {
-      book_id: newBookId,
-      user_id: req.user.id,
-      percent: 0,
-      reading_status: 'in progress'
-    };
-    UsersService.insertProgress(
-      req.app.get('db'),
-      newProgress
-    )
-      .then(progress => {
-        res.status(201).json(progress);
-      });
   });
-
 
 usersRouter.route('/users/:user_id/books/:book_id')
   .all(requireAuth)
@@ -112,6 +150,22 @@ usersRouter.route('/users/:user_id/books/:book_id')
         }
         res.json(book.map(serializeUserProfileBook));
       });
+  })
+  .patch(jsonParser, (req, res, next) => {
+    const { rating } = req.body;
+    const updateRating = {rating};
+    if (rating === null || undefined) {
+      return res.status(400).json({error: 'Request body must contain rating.'});
+    }
+    const userId = req.params.user_id;
+    const bookId = req.params.book_id;
+    const ratingId = req.app.get('db').from('ratings').select('ratings.id').where('ratings.book_id', bookId).andWhere('ratings.user_id', userId);
+    //how can I get the rating id from inside of the router component?
+    UsersService.updateRating(req.app.get('db'), ratingId, updateRating)
+      .then( () => {
+        res.status(204).end();
+      })
+      .catch(next);    
   });
 
 module.exports = usersRouter;

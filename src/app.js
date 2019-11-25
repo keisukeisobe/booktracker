@@ -32,7 +32,7 @@ app.use(function errorHandler(error, req, res, next) {
     response = {error: {message: 'server error'} };
   } else {
     // eslint-disable-next-line no-console
-    console.error(error);
+    //console.error(error);
     response= {message:error.message, error};
   }
   res.status(500).json(response);

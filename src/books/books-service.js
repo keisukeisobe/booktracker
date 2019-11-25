@@ -6,7 +6,7 @@ const BooksService = {
       id: book.id,
       title: xss(book.title),
       description: xss(book.description),
-      author_id: book.author_id,
+      author: xss(book.author),
       date_published: xss(book.date_published)     
     };
   },
@@ -28,6 +28,12 @@ const BooksService = {
     return db.from('progress')
       .select('*')
       .where('progress.id', id)
+      .first();
+  },
+  getRatingById(db, id) {
+    return db.from('ratings')
+      .select('*')
+      .where('ratings.id', id)
       .first();
   }
 };

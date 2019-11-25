@@ -36,11 +36,11 @@ VALUES
   ('Science Fiction'),
   ('Romance');
 
-INSERT INTO books (title, description, author_id, genre_id)
+INSERT INTO books (title, author, description, author_id, genre_id)
 VALUES
-  ('The Final Empire', 'Mistborn Book 1', 1, 1),
-  ('Ubik', 'what is going on', 8, 2),
-  ('Twilight', 'Twilight book 1', 9, 3);
+  ('The Final Empire', 'Brandon Sanderson', 'Mistborn Book 1', 1, 1),
+  ('Ubik', 'Philip K. Dick', 'what is going on', 8, 2),
+  ('Twilight', 'Stephanie Meyer', 'Twilight book 1', 9, 3);
 
 INSERT INTO ratings (content, rating, book_id, user_id)
 VALUES
