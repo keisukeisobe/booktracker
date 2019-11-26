@@ -12,25 +12,24 @@ const serializeUser = user => ({
   username: user.username
 });
 
-const serializeUserProfile = progress => ({
-  title: progress.title,
-  author_name: progress.name,
-  status: progress.reading_status,
-  percent: progress.percent,
-  rating: progress.rating,
-  progress_id: progress.id,
-  book_id: progress.book_id
-});
-
 const serializeUserProfileBook = progress => ({
   title: progress.title,
   author_name: progress.name,
   description: progress.description,
   status: progress.reading_status,
-  percent: progress.percent,
+  percent: progress.pagecount/progress.maxpagecount.toPrecision(3),
   rating: progress.rating,
+  plot: progress.plot,
+  prose: progress.prose,
+  characters: progress.characters,
+  worldbuilding: progress.worldbuilding,
+  theme: progress.theme,
+  content: progress.content,
   progress_id: progress.id,
-  book_id: progress.book_id
+  book_id: progress.book_id,
+  pagecount: progress.pagecount,
+  maxpagecount: progress.maxpagecount,
+  reading_status: progress.reading_status
 });
 
 usersRouter.route('/users/')
@@ -46,6 +45,7 @@ usersRouter.route('/users/')
       .catch(next);
   });
 
+// eslint-disable-next-line no-unused-vars
 usersRouter.post('/users/', jsonParser, (req, res, next) =>{
   const {username, password, email} = req.body;
   for (const field of ['username', 'password', 'email']){
@@ -86,6 +86,7 @@ usersRouter.post('/users/', jsonParser, (req, res, next) =>{
 
 usersRouter.route('/users/:user_id')
   .all(requireAuth)
+  //get all books from a single user
   // eslint-disable-next-line no-unused-vars
   .get((req, res, next) => {
     const knexInstance = req.app.get('db');
@@ -94,17 +95,21 @@ usersRouter.route('/users/:user_id')
         if(!profile) {
           return res.status(404).json({error: 'User does not exist'});
         }
-        res.json(profile.map(serializeUserProfile));
+        res.json(profile.map(serializeUserProfileBook));
       });
   })
+  //add a book
   .post(jsonParser, (req, res, next) => {
-    const { title, author, description } = req.body;
+    const { title, author, description, maxpagecount } = req.body;
     const newBook =  { title, author, description };
     const requiredFields = ['title', 'author', 'description'];
     for (const key of requiredFields) {
       if(!(key in req.body)){
         return res.status(400).json({error: `Missing ${key} in request body`});
       }
+    }
+    if(maxpagecount === null || undefined){
+      return res.status(400).json({error: 'Missing page count in request body'});
     }
     let newBookId = '';
     UsersService.insertBook(
@@ -117,7 +122,9 @@ usersRouter.route('/users/:user_id')
           book_id: newBookId,
           user_id: req.user.id,
           percent: 0,
-          reading_status: 'in progress'
+          reading_status: 'in progress',
+          pagecount: 0,
+          maxpagecount: maxpagecount
         };
         UsersService.insertProgress(
           req.app.get('db'),
@@ -152,18 +159,31 @@ usersRouter.route('/users/:user_id/books/:book_id')
       });
   })
   .patch(jsonParser, (req, res, next) => {
-    const { rating } = req.body;
-    const updateRating = {rating};
-    if (rating === null || undefined) {
-      return res.status(400).json({error: 'Request body must contain rating.'});
+    const { rating, plot, prose, characters, worldbuilding, theme, content, pagecount, maxpagecount, reading_status} = req.body;
+    const updateRating = {rating, plot, prose, characters, worldbuilding, theme, content};
+    const updateProgress = {pagecount, maxpagecount, reading_status, percent: pagecount/maxpagecount};
+    if (pagecount >= maxpagecount){
+      updateProgress.reading_status = 'completed';
+    }
+    if (reading_status === 'completed'){
+      updateProgress.pagecount = maxpagecount;
+    }
+    for (let key in updateRating){
+      if (updateRating[key]=== null || undefined) {
+        return res.status(400).json({error: 'Request body must contain rating.'});
+      }
     }
     const userId = req.params.user_id;
     const bookId = req.params.book_id;
     const ratingId = req.app.get('db').from('ratings').select('ratings.id').where('ratings.book_id', bookId).andWhere('ratings.user_id', userId);
+    const progressId = req.app.get('db').from('progress').select('progress.id').where('progress.book_id', bookId).andWhere('progress.user_id', userId);
     //how can I get the rating id from inside of the router component?
     UsersService.updateRating(req.app.get('db'), ratingId, updateRating)
       .then( () => {
-        res.status(204).end();
+        UsersService.updateProgress(req.app.get('db'), progressId, updateProgress)
+          .then( () => {
+            res.status(204).end();
+          });
       })
       .catch(next);    
   });

@@ -5,5 +5,10 @@ CREATE TABLE ratings (
     content TEXT,
     book_id INTEGER REFERENCES books(id) ON DELETE CASCADE NOT NULL,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
-    rating INTEGER DEFAULT 0 NOT NULL
+    rating INTEGER DEFAULT 0 NOT NULL,
+    plot INTEGER DEFAULT 0,
+    prose INTEGER DEFAULT 0,
+    characters INTEGER DEFAULT 0,
+    worldbuilding INTEGER DEFAULT 0,
+    theme INTEGER DEFAULT 0
 );

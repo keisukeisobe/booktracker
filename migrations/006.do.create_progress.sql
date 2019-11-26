@@ -5,5 +5,7 @@ CREATE TABLE progress (
     book_id INTEGER REFERENCES books(id) ON DELETE CASCADE NOT NULL,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     percent INTEGER DEFAULT 0 NOT NULL,
-    reading_status TEXT NOT NULL
+    reading_status TEXT NOT NULL,
+    pagecount INTEGER NOT NULL,
+    maxpagecount INTEGER NOT NULL
 );

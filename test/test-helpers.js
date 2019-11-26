@@ -85,28 +85,36 @@ function makeProgressArray() {
       book_id: 1,
       user_id: 1,
       percent: 100,
-      reading_status: 'completed'
+      reading_status: 'completed',
+      pagecount: 637,
+      maxpagecount: 637
     },
     {
       id: 2,
       book_id: 2,
       user_id: 1,
       percent: 50,
-      reading_status: 'in progress'
+      reading_status: 'in progress',
+      pagecount: 300,
+      maxpagecount: 600
     },
     {
       id: 3,
       book_id: 3,
       user_id: 1,
       percent: 75,
-      reading_status: 'in progress'
+      reading_status: 'in progress',
+      pagecount: 450,
+      maxpagecount: 600
     },
     {
       id: 4,
       book_id: 4,
       user_id: 1,
       percent: 25,
-      reading_status: 'in progress'
+      reading_status: 'in progress',
+      pagecount: 100,
+      maxpagecount: 400
     },
   ];
 }

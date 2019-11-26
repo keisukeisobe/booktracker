@@ -11,14 +11,14 @@ const UsersService = {
   },
   getUserProfile(db, user_id) {
     return db.from('progress')
-      .select('books.title', 'books.author', 'ratings.rating', 'progress.reading_status', 'progress.percent', 'ratings.rating', 'progress.id', 'books.id AS book_id')
+      .select('books.title', 'books.author', 'ratings.rating', 'ratings.content', 'ratings.plot', 'ratings.prose', 'ratings.characters', 'ratings.worldbuilding', 'ratings.theme', 'books.description', 'progress.reading_status', 'progress.percent', 'progress.pagecount', 'progress.maxpagecount', 'progress.id', 'books.id AS book_id')
       .join('books', 'progress.book_id', '=', 'books.id')
       .join('ratings', 'ratings.book_id', '=', 'books.id')
       .where('progress.user_id', user_id);
   },
   getUserProfileBook(db, user_id, book_id) {
     return db.from('progress')
-      .select('books.title', 'books.author', 'ratings.rating', 'books.description', 'progress.reading_status', 'progress.percent', 'ratings.rating', 'progress.id', 'books.id AS book_id')
+      .select('books.title', 'books.author', 'ratings.rating', 'ratings.content', 'ratings.plot', 'ratings.prose', 'ratings.characters', 'ratings.worldbuilding', 'ratings.theme', 'books.description', 'progress.reading_status', 'progress.percent', 'progress.pagecount', 'progress.maxpagecount', 'progress.id', 'books.id AS book_id')
       .join('books', 'progress.book_id', '=', 'books.id')
       .join('ratings', 'ratings.book_id', '=', 'books.id')
       .where('progress.user_id', user_id)
@@ -39,6 +39,9 @@ const UsersService = {
       .returning('*')
       .then(([progress]) => progress)
       .then(progress => BooksService.getProgressById(db, progress.id));
+  },
+  updateProgress(db, id, newProgress) {
+    return db('progress').where({id}).update(newProgress);
   },
   insertRating(db, newRating) {
     return db

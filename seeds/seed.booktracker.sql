@@ -42,15 +42,15 @@ VALUES
   ('Ubik', 'Philip K. Dick', 'what is going on', 8, 2),
   ('Twilight', 'Stephanie Meyer', 'Twilight book 1', 9, 3);
 
-INSERT INTO ratings (content, rating, book_id, user_id)
+INSERT INTO ratings (content, rating, plot, prose, characters, worldbuilding, theme, book_id, user_id)
 VALUES
-  ('great', 5, 1, 1),
-  ('confusing', 4, 2, 2),
-  ('bad', 1, 3, 3);
+  ('great', 5, 5, 5, 5, 5, 5, 1, 1),
+  ('confusing', 4, 4, 4, 4, 4, 4, 2, 2),
+  ('bad', 1, 1, 1, 1, 1, 1, 3, 3);
 
-INSERT INTO progress (book_id, user_id, percent, reading_status)
+INSERT INTO progress (book_id, user_id, percent, reading_status, pagecount, maxpagecount)
 VALUES
-  (1, 1, 100, 'completed'),
-  (2, 1, 50, 'in progress'),
-  (3, 1, 75, 'in progress');
+  (1, 1, 100, 'completed', 637, 637),
+  (2, 1, 50, 'in progress', 300, 600),
+  (3, 1, 75, 'in progress', 450, 600);
 COMMIT;

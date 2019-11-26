@@ -2,7 +2,6 @@ const knex = require('knex');
 const app = require('../src/app');
 const helpers = require('./test-helpers');
 
-
 describe('Users endpoints', function() {
   this.timeout(5000);
   let db;
@@ -29,7 +28,9 @@ describe('Users endpoints', function() {
       const newBook = {
         title: 'Words of Radiance',
         description: 'Book 2 of the Stormlight Archives',
-        author: 'Brandon Sanderson'
+        author: 'Brandon Sanderson',
+        pagecount: 0,
+        maxpagecount: 1000
       };
       //why isn't the date working? hm
       return supertest(app)
@@ -45,6 +46,7 @@ describe('Users endpoints', function() {
           expect(res.body.title).to.eql(newBook.title);
           expect(res.body.description).to.eql(newBook.description);
           expect(res.body.author).to.eql(newBook.author);
+          expect(res.body.maxpagecount).to.eql(newBook.maxpagecount);
           expect(res.headers.location).to.eql(`/api/users/${testUser.id}/books/${res.body.book_id}`);
           expect(res.body.user_id).to.eql(testUser.id);
           expect(res.body.percent).to.eql(0);
@@ -70,6 +72,7 @@ describe('Users endpoints', function() {
               expect(row.book_id).to.eql(res.body.book_id);
               expect(row.user_id).to.eql(testUser.id);
               expect(row.percent).to.eql(0);
+              expect(row.maxpagecount).to.eql(res.body.maxpagecount);
               expect(row.reading_status).to.eql('in progress');
             })
         );
@@ -103,15 +106,34 @@ describe('Users endpoints', function() {
         title: testBook.title,
         description: testBook.description,
         status: 'completed',
-        percent: 100,
+        percent: 1,
         rating: 5,
+        plot: 5,
+        prose: 5,
+        characters: 5,
+        worldbuilding: 5,
+        theme: 5,
         progress_id: 1,
-        book_id: testBook.id
+        book_id: testBook.id,
+        content: 'what a twist',
+        pagecount: 700,
+        maxpagecount: 700,
+        reading_status: 'completed'
       };
       return supertest(app)
         .patch(`/api/users/${testUser.id}/books/${testBook.id}`)
         .set('Authorization', helpers.makeAuthHeader(testUser))
-        .send({rating: 5})
+        .send({
+          rating: 5,
+          plot: 5,
+          prose: 5,
+          characters: 5,
+          worldbuilding: 5,
+          theme: 5,
+          content: 'what a twist',
+          pagecount: 700,
+          maxpagecount: 700
+        })
         .expect(204)
         .then( () => supertest(app).get(`/api/users/${testUser.id}/books/${testBook.id}`).set('Authorization', helpers.makeAuthHeader(testUser)).expect([expectedBook]));
     });
