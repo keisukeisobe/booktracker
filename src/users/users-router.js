@@ -7,11 +7,6 @@ const {requireAuth} = require('../middleware/jwt-auth');
 
 const usersRouter = express.Router();
 
-const serializeUser = user => ({
-  id: user.id,
-  username: user.username
-});
-
 const serializeUserProfileBook = progress => ({
   title: progress.title,
   author_name: progress.name,
@@ -31,19 +26,6 @@ const serializeUserProfileBook = progress => ({
   maxpagecount: progress.maxpagecount,
   reading_status: progress.reading_status
 });
-
-usersRouter.route('/users/')
-  .get(requireAuth, (req, res, next) => {
-    const knexInstance = req.app.get('db');
-    UsersService.getAllUsers(knexInstance)
-      .then(users => {
-        if(!users) {
-          return res.status(404).json({error: 'No users exist'});
-        }
-        res.json(users.map(serializeUser));
-      })
-      .catch(next);
-  });
 
 // eslint-disable-next-line no-unused-vars
 usersRouter.post('/users/', jsonParser, (req, res, next) =>{
@@ -86,7 +68,6 @@ usersRouter.post('/users/', jsonParser, (req, res, next) =>{
 
 usersRouter.route('/users/:user_id')
   .all(requireAuth)
-  //get all books from a single user
   // eslint-disable-next-line no-unused-vars
   .get((req, res, next) => {
     const knexInstance = req.app.get('db');
@@ -98,7 +79,6 @@ usersRouter.route('/users/:user_id')
         res.json(profile.map(serializeUserProfileBook));
       });
   })
-  //add a book
   .post(jsonParser, (req, res, next) => {
     const { title, author, description, maxpagecount } = req.body;
     const newBook =  { title, author, description };
@@ -177,7 +157,6 @@ usersRouter.route('/users/:user_id/books/:book_id')
     const bookId = req.params.book_id;
     const ratingId = req.app.get('db').from('ratings').select('ratings.id').where('ratings.book_id', bookId).andWhere('ratings.user_id', userId);
     const progressId = req.app.get('db').from('progress').select('progress.id').where('progress.book_id', bookId).andWhere('progress.user_id', userId);
-    //how can I get the rating id from inside of the router component?
     UsersService.updateRating(req.app.get('db'), ratingId, updateRating)
       .then( () => {
         UsersService.updateProgress(req.app.get('db'), progressId, updateProgress)

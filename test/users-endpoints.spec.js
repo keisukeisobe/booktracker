@@ -21,6 +21,18 @@ describe('Users endpoints', function() {
 
   afterEach('Cleanup', () => helpers.cleanTables(db));
 
+  describe('GET /api/users/:user_id, get list of user books', () => {
+    beforeEach('insert everything', () => helpers.seedTables(db, testUsers, testBooks, testProgress, testRatings));
+    it('gets list of user associated books', () => {
+      const testUser = testUsers[0];
+      const expectedBooks = helpers.makeExpectedProgressJoin();
+      return supertest(app)
+        .get(`/api/users/${testUser.id}/`)
+        .set('Authorization', helpers.makeAuthHeader(testUser))
+        .expect(200, expectedBooks);
+    });
+  });
+
   describe('POST /api/users/:user_id/, add book', () => {
     beforeEach('insert everything', () => helpers.seedTables(db, testUsers, testBooks, testProgress, testRatings));
     it('creates a book, responds 201 and the new book', () => {
@@ -32,7 +44,6 @@ describe('Users endpoints', function() {
         pagecount: 0,
         maxpagecount: 1000
       };
-      //why isn't the date working? hm
       return supertest(app)
         .post(`/api/users/${testUser.id}/`)
         .set('Authorization', helpers.makeAuthHeader(testUser))
@@ -94,6 +105,20 @@ describe('Users endpoints', function() {
           .send(newBook)
           .expect(400, {error: `Missing ${field} in request body`});
       });
+    });
+  });
+
+  describe('GET /api/users/:user_id/books/:book_id', () => {
+    beforeEach('insert everything', () => helpers.seedTables(db, testUsers, testBooks, testProgress, testRatings));
+    it('gets single book based on id from user list', () => {
+      const testUser = testUsers[0];
+      const bookId = 1;
+      const expectedBooks = helpers.makeExpectedProgressJoin();
+      const expectedBook = expectedBooks.filter(book => book.book_id === bookId);
+      return supertest(app)
+        .get(`/api/users/${testUser.id}/books/${bookId}`)
+        .set('Authorization', helpers.makeAuthHeader(testUser))
+        .expect(200, expectedBook);
     });
   });
 

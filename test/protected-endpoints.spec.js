@@ -78,5 +78,22 @@ describe('Protected endpoints', function() {
     });
   });
 
-  //describe for PATCH progress, endpoint for PATCH progress
+  describe('PATCH /api/users/:user_id/books/:book_id', () => {
+    beforeEach('seed database', () => helpers.seedTables(db, testUsers, testBooks, testProgress, testRatings));
+    it('responds 401 "Missing bearer token" when no token', () => {
+      const validUser = testUsers[0];
+      const invalidSecret = 'bad-secret';
+      return supertest(app)
+        .patch(`/api/users/${validUser.id}/books/1`)
+        .set('Authorization', helpers.makeAuthHeader(validUser, invalidSecret))
+        .expect(401, {error: 'Unauthorized request'});
+    });
+    it('responds 401 "Unauthorized request" when invalid sub in payload', () => {
+      const invalidUser = {username: 'user-does-not-exist', id: 1};
+      return supertest(app)
+        .patch(`/api/users/${invalidUser.id}/books/1`)
+        .set('Authorization', helpers.makeAuthHeader(invalidUser))
+        .expect(401, {error: 'Unauthorized request'});
+    });
+  });
 });

@@ -27,7 +27,6 @@ describe('Auth login endpoints', function() {
     beforeEach('insert users', () => {
       helpers.seedUsers(db, testUsers);
     });
-
     it('Responds with 200 and JWT Auth token using secret when valid credentials', () => {
       const userValidCreds = {
         username: testUser.username,
@@ -40,15 +39,12 @@ describe('Auth login endpoints', function() {
         .send(userValidCreds)
         .expect(200, expectedReturn);
     });
-
     const requiredFields = ['username', 'password'];
-
     requiredFields.forEach(field => {
       const loginAttemptBody = {
         username: testUser.username,
         password: testUsers.password
       };
-
       it(`Responds with 400 when ${field} is missing`, () => {
         delete loginAttemptBody[field];
         return supertest(app)
@@ -57,23 +53,19 @@ describe('Auth login endpoints', function() {
           .expect(400, {error: `Missing ${field} in request body` });
       });
     });
-
-    it('Responds with 400 "Invalid username or password" when bad username', () => {
+    it('Responds with 400 "Incorrect username or password" when bad username', () => {
       const userInvalidUsername = {username: 'bad', password: 'exists'};
       return supertest(app)
         .post('/api/auth/login')
         .send(userInvalidUsername)
         .expect(400, {error: 'Incorrect username or password'});
     });
-    it('Responds with 400 "Invalid username or password" when bad password', () => {
+    it('Responds with 400 "Incorrect username or password" when bad password', () => {
       const userInvalidPassword = {username: testUser.username, password: 'wrong'};
       return supertest(app)
         .post('/api/auth/login')
         .send(userInvalidPassword)
         .expect(400, {error: 'Incorrect username or password'});
     });
-
   });
-
-  
 });
