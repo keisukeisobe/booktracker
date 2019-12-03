@@ -22,14 +22,86 @@ describe('Users endpoints', function() {
   afterEach('Cleanup', () => helpers.cleanTables(db));
 
   describe('GET /api/users/:user_id, get list of user books', () => {
-    beforeEach('insert everything', () => helpers.seedTables(db, testUsers, testBooks, testProgress, testRatings));
-    it('gets list of user associated books', () => {
-      const testUser = testUsers[0];
+    context('given no xss attack', () => {
+      beforeEach('insert everything', () => helpers.seedTables(db, testUsers, testBooks, testProgress, testRatings));
+      it('returns empty array if no books', () => {
+        const testUser = testUsers[1];
+        return supertest(app)
+          .get(`/api/users/${testUser.id}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(200, []);
+      });  
+      it('gets list of user associated books', () => {
+        const testUser = testUsers[0];
+        const expectedBooks = helpers.makeExpectedProgressJoin();
+        return supertest(app)
+          .get(`/api/users/${testUser.id}/`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(200, expectedBooks);
+      });  
+    });
+    context('given an xss attack entry', () => {
+      const {maliciousBook} = helpers.makeMaliciousBook();
+      const tempBooks = [...testBooks];
+      const tempProgress = [...testProgress];
+      const tempRatings = [...testRatings];
+      tempBooks.push(maliciousBook);
+      tempProgress.push({
+        id: 5,
+        book_id: 999,
+        user_id: 1,
+        percent: 5,
+        reading_status: 'in progress',
+        pagecount: 999,
+        maxpagecount: 999
+      });
+      tempRatings.push(    {
+        id: 5,
+        content: 'css',
+        user_id: 1,
+        book_id: 999,
+        rating: 5
+      });
       const expectedBooks = helpers.makeExpectedProgressJoin();
-      return supertest(app)
-        .get(`/api/users/${testUser.id}/`)
-        .set('Authorization', helpers.makeAuthHeader(testUser))
-        .expect(200, expectedBooks);
+      expectedBooks.push(
+        {title:
+          'Naughty naughty very naughty <script>alert("xss");</script>',
+        description:
+          'Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.',
+        status: 'in progress',
+        percent: 1,
+        rating: 5,
+        plot: 0,
+        prose: 0,
+        characters: 0,
+        worldbuilding: 0,
+        theme: 0,
+        content: 'css',
+        progress_id: 5,
+        book_id: 999,
+        pagecount: 999,
+        maxpagecount: 999,
+        reading_status: 'in progress' 
+        }
+      );
+      const testUser = testUsers[0];
+      beforeEach('insert', () => helpers.seedTables(db, testUsers, tempBooks, tempProgress, tempRatings));
+      it('removes xss attack content', () => {
+        return supertest(app)
+          .get(`/api/users/${testUser.id}/`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(200, expectedBooks);
+      });  
+    });
+    context('given no such user', () => {
+      const testUser = testUsers[0];
+      beforeEach('insert', () => helpers.seedTables(db, testUsers, testBooks, testProgress, testRatings));
+      it('returns 404 user does not exist', () => {
+        return supertest(app)
+          .get('/api/users/999/')
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(404, {error: 'User does not exist'});
+      });
     });
   });
 
@@ -109,16 +181,92 @@ describe('Users endpoints', function() {
   });
 
   describe('GET /api/users/:user_id/books/:book_id', () => {
-    beforeEach('insert everything', () => helpers.seedTables(db, testUsers, testBooks, testProgress, testRatings));
-    it('gets single book based on id from user list', () => {
-      const testUser = testUsers[0];
-      const bookId = 1;
+    context('given no xss attack', () => {
+      beforeEach('insert everything', () => helpers.seedTables(db, testUsers, testBooks, testProgress, testRatings));
+      it('gets single book based on id from user list', () => {
+        const testUser = testUsers[0];
+        const bookId = 1;
+        const expectedBooks = helpers.makeExpectedProgressJoin();
+        const expectedBook = expectedBooks.filter(book => book.book_id === bookId);
+        return supertest(app)
+          .get(`/api/users/${testUser.id}/books/${bookId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(200, expectedBook);
+      });  
+    });
+    context('given xss attack', () => {
+      const {maliciousBook} = helpers.makeMaliciousBook();
+      const tempBooks = [...testBooks];
+      const tempProgress = [...testProgress];
+      const tempRatings = [...testRatings];
+      tempBooks.push(maliciousBook);
+      tempProgress.push({
+        id: 5,
+        book_id: 999,
+        user_id: 1,
+        percent: 5,
+        reading_status: 'in progress',
+        pagecount: 999,
+        maxpagecount: 999
+      });
+      tempRatings.push(    {
+        id: 5,
+        content: 'css',
+        user_id: 1,
+        book_id: 999,
+        rating: 5
+      });
       const expectedBooks = helpers.makeExpectedProgressJoin();
-      const expectedBook = expectedBooks.filter(book => book.book_id === bookId);
-      return supertest(app)
-        .get(`/api/users/${testUser.id}/books/${bookId}`)
-        .set('Authorization', helpers.makeAuthHeader(testUser))
-        .expect(200, expectedBook);
+      expectedBooks.push(
+        {title:
+          'Naughty naughty very naughty <script>alert("xss");</script>',
+        description:
+          'Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.',
+        status: 'in progress',
+        percent: 1,
+        rating: 5,
+        plot: 0,
+        prose: 0,
+        characters: 0,
+        worldbuilding: 0,
+        theme: 0,
+        content: 'css',
+        progress_id: 5,
+        book_id: 999,
+        pagecount: 999,
+        maxpagecount: 999,
+        reading_status: 'in progress' 
+        }
+      );
+      const expectedBook = [expectedBooks[4]];
+      const testUser = testUsers[0];
+      beforeEach('insert', () => helpers.seedTables(db, testUsers, tempBooks, tempProgress, tempRatings));
+      it('removes xss attack content', () => {
+        return supertest(app)
+          .get(`/api/users/${testUser.id}/books/999`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(200, expectedBook);
+      });  
+    });
+    context('given no such user', () => {
+      const testUser = testUsers[0];
+      beforeEach('insert everything', () => helpers.seedTables(db, testUsers, testBooks, testProgress, testRatings));
+      it('returns 404 user has not logged this book', () => {
+        return supertest(app)
+          .get('/api/users/999/books/1')
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(404, {error: 'User does not exist'});
+      });
+    });
+    context('given no such book', () => {
+      const testUser = testUsers[0];
+      beforeEach('insert everything', () => helpers.seedTables(db, testUsers, testBooks, testProgress, testRatings));
+      it('returns 404 user has not logged this book', () => {
+        return supertest(app)
+          .get('/api/users/1/books/999')
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(404, {error: 'User has not logged this book'});
+      });
     });
   });
 

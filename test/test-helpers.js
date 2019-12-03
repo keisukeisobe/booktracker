@@ -235,12 +235,14 @@ function makeMaliciousBook() {
     id: 999,
     date_created: new Date().toISOString(),
     title: 'Naughty naughty very naughty <script>alert("xss");</script>',
+    author: 'Evil Sanderson',
     description: 'Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.',
   };
   const expectedBook = {
     id: 999,
     date_created: maliciousBook.date_created,
     title: 'Naughty naughty very naughty &lt;script&gt;alert("xss");&lt;/script&gt;',
+    author: 'Evil Sanderson',
     description: 'Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.',
   };
   return {

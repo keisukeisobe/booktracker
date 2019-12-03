@@ -73,10 +73,13 @@ usersRouter.route('/users/:user_id')
     const knexInstance = req.app.get('db');
     UsersService.getUserProfile(knexInstance, req.params.user_id)
       .then(profile => {
-        if(!profile) {
-          return res.status(404).json({error: 'User does not exist'});
-        }
-        res.json(profile.map(serializeUserProfileBook));
+        (knexInstance.from('users').select('id').where('id', req.params.user_id).then(result => {
+          if (result.length > 0){
+            res.json(profile.map(serializeUserProfileBook));
+          } else {
+            return res.status(404).json({error: 'User does not exist'});
+          }
+        }));
       });
   })
   .post(jsonParser, (req, res, next) => {
@@ -132,10 +135,20 @@ usersRouter.route('/users/:user_id/books/:book_id')
     const knexInstance = req.app.get('db');
     UsersService.getUserProfileBook(knexInstance, req.params.user_id, req.params.book_id)
       .then(book => {
-        if(!book) {
-          return res.status(404).json({error: 'User has not logged this book'});
-        }
-        res.json(book.map(serializeUserProfileBook));
+        knexInstance.from('users').select('id').where('id', req.params.user_id).then(result => {
+          if (result.length > 0){
+            if(book.length === 0) {
+              return res.status(404).json({error: 'User has not logged this book'});
+            } else {
+              res.json(book.map(serializeUserProfileBook));
+            }
+          } else {
+            return res.status(404).json({error: 'User does not exist'});
+          }
+          if(book.length === 0) {
+            return res.status(404).json({error: 'User has not logged this book'});
+          }
+        });
       });
   })
   .patch(jsonParser, (req, res, next) => {
