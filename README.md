@@ -1,26 +1,47 @@
-# Express Boilerplate!
+BookTracker
 
-This is a boilerplate project used for starting new projects!
+Link: https://booktracker-app.now.sh
 
-## Set up
+BookTracker is an app that will allow you to track what books you're reading, your progress in you
+books, and rate the books you've read in a more granular fashion than other reading apps. 
 
-Complete the following steps to start a new project (NEW-PROJECT-NAME):
+BookTracker also provides users with a profile of their reading habits and proclivities, based on their 
+ratings of books in their library. 
 
-1. Clone this repository to your local machine `git clone BOILERPLATE-URL NEW-PROJECTS-NAME`
-2. `cd` into the cloned repository
-3. Make a fresh start of the git history for this project with `rm -rf .git && git init`
-4. Install the node dependencies `npm install`
-5. Move the example Environment file to `.env` that will be ignored by git and read by the express server `mv example.env .env`
-6. Edit the contents of the `package.json` to use NEW-PROJECT-NAME instead of `"name": "express-boilerplate",`
+This project uses React, Express, and PostgreSQL.
 
-## Scripts
+Screenshots: 
 
-Start the application `npm start`
+https://i.imgur.com/GgGfWWd.png
 
-Start nodemon for the application `npm run dev`
+https://i.imgur.com/E540aoC.png
 
-Run the tests `npm test`
+https://i.imgur.com/eETCCUj.png
 
-## Deploying
+API Documentation: 
 
-When your new project is ready for deployment, add a new Heroku application with `heroku create`. This will make a new git remote called "heroku" and you can then `npm run deploy` which will push to this remote's master branch.
+Endpoints: /users/:userId, /users/:userId/books/:bookId
+
+Base URL: https://intense-cliffs-98344.herokuapp.com/api/
+
+POST /users
+
+Creates a new user. Requires a request body with an username, email, and password. 
+
+GET /users/[USER ID]
+
+Provides an array of all books read by the specified user ID.
+
+POST /users/[USER ID]
+
+Creates new book entry that is keyed to the specified user. Requires a request body 
+with a title, author, description, and page count. 
+
+GET /users/[USER ID]/books/[BOOK ID]
+
+Provides a book object from within that user's library. 
+
+PATCH /users/[USER ID]/books/[BOOK ID]
+
+Updates a book object from the user's library with the supplied information. 
+
