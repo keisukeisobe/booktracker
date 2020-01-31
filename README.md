@@ -10,8 +10,7 @@ BookTracker also provides users with a profile of their reading habits and procl
 ratings of books in their library. 
 
 ## API Documentation: 
-/api
-.
+```
 ├── /auth/login
 │   └── POST    /           (log in)
 |
