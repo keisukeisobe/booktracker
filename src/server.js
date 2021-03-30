@@ -8,8 +8,3 @@ const db = knex({
 });
 
 app.set('db', db);
-
-// app.listen(PORT, () => {
-//   // eslint-disable-next-line no-console
-//   console.log(`Server listening at http://localhost:${PORT}`);
-// });
